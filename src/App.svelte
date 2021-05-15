@@ -1,29 +1,43 @@
 <script>
 	const { ipcRenderer } = require("electron");
 	
-	let directoryPath = "";
+	import { Script } from "./class";
 	
-	async function handleClick()
+	let settingsInFocus = false;
+	
+	function toogleSettings()
 	{
-		ipcRenderer.send("getPathDir");
+		settingsInFocus = !settingsInFocus;
 	}
 	
-	ipcRenderer.on("setPathDir",
-		(event, [_path]) =>
+	/** @type {Script[]}*/
+	let scripts = [];
+	
+	
+	ipcRenderer.on("setScripts",
+		(event, _scripts) =>
 		{
-			directoryPath = _path;
+			scripts = _scripts;
 		}
 	);
+	
+	import ComponentScript from "./Scripts.svelte";
+	import ComponentSettings from "./Settings.svelte";
 </script>
 
 <main>
-	<h1>Hello World!</h1>
+	<ComponentSettings inFocus={settingsInFocus}/>
 	
-	{#if directoryPath==""}
-		<button on:click={handleClick}>Choose path!</button>
-	{:else}
-		<button on:click={handleClick}>Choosend path is: {directoryPath}</button>
-	{/if}
+	<button id="settingsButton" on:click={toogleSettings}><img src="./settings.svg" alt="The settings button."></button>
+	
+	
+	<h1>Script Hub</h1>
+	
+	<div class="scripts">
+		{#each scripts as script}
+			<ComponentScript script={script}/>
+		{/each}
+	</div>
 </main>
 
 <style>
@@ -40,7 +54,43 @@
 		font-size: 4em;
 		font-weight: 100;
 	}
-
+	
+	.scripts{
+		display: flex;
+		
+		justify-content: center; 
+		flex-direction: column;
+		
+		margin-left: 50%;
+		margin-right: 5px;
+		
+		border: 1px solid #EEE;
+		box-shadow: 0 4px 8px 0 #00000020;
+	}
+	
+	.scripts:empty{
+		border: none;
+		box-shadow: none;
+	}
+	
+	#settingsButton{
+		z-index: 2;
+		
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		
+		width: 50px;
+		height: 50px;
+		
+		padding: 5px;
+	}
+	
+	#settingsButton img{
+		width: 40px;
+		height: 40px;
+	}
+	
 	@media (min-width: 640px) {
 		main {
 			max-width: none;
