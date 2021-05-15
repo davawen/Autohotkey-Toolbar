@@ -5,21 +5,23 @@
 	
 	let settingsInFocus = false;
 	
-	function toogleSettings()
-	{
-		settingsInFocus = !settingsInFocus;
-	}
-	
 	/** @type {Script[]}*/
 	let scripts = [];
 	
+	// Ping for scripts on startup
+	ipcRenderer.send("getScripts");
 	
 	ipcRenderer.on("setScripts",
 		(event, _scripts) =>
 		{
-			scripts = _scripts;
+			scripts = JSON.parse(_scripts);
 		}
 	);
+	
+	function handleScriptCommand(event)
+	{
+		ipcRenderer.send("scriptCommand", event.detail);
+	}
 	
 	import ComponentScript from "./Scripts.svelte";
 	import ComponentSettings from "./Settings.svelte";
@@ -28,14 +30,13 @@
 <main>
 	<ComponentSettings inFocus={settingsInFocus}/>
 	
-	<button id="settingsButton" on:click={toogleSettings}><img src="./settings.svg" alt="The settings button."></button>
-	
+	<button id="settingsButton" on:click={() => {settingsInFocus = !settingsInFocus;}}><img src="./icons/settings.svg" alt="The settings button."></button>
 	
 	<h1>Script Hub</h1>
 	
 	<div class="scripts">
 		{#each scripts as script}
-			<ComponentScript script={script}/>
+			<ComponentScript on:scriptCommand={handleScriptCommand} script={script}/>
 		{/each}
 	</div>
 </main>
@@ -43,8 +44,6 @@
 <style>
 	main {
 		text-align: center;
-		padding: 1em;
-		max-width: 240px;
 		margin: 0 auto;
 	}
 
@@ -61,8 +60,8 @@
 		justify-content: center; 
 		flex-direction: column;
 		
-		margin-left: 50%;
-		margin-right: 5px;
+		margin: auto;
+		width: 80vw;
 		
 		border: 1px solid #EEE;
 		box-shadow: 0 4px 8px 0 #00000020;
